@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__</title>
+<script>__PLOTLY_JS__</script>
+<style>
+:root {
+  --bg:#f4f6f9;--card:#fff;--header:#1a2744;
+  --accent:#3b6fcf;--accent2:#e07b30;
+  --text:#212529;--muted:#6c757d;
+  --border:#dee2e6;--radius:8px;--gap:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+     background:var(--bg);color:var(--text);font-size:13px;}
+.app{max-width:1600px;margin:0 auto;padding:var(--gap);}
+.header{background:var(--header);color:#fff;border-radius:var(--radius);
+        padding:14px 20px;margin-bottom:var(--gap);
+        display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.header h1{font-size:17px;font-weight:600;margin-right:6px;}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;flex:1;}
+.fg{display:flex;align-items:center;gap:5px;}
+.fg label{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap;}
+.fg select,.fg input[type=date]{padding:4px 8px;border-radius:4px;
+  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);
+  color:#fff;font-size:12px;}
+.fg select option{background:#1a2744;}
+.btn{padding:4px 11px;border-radius:4px;border:1px solid rgba(255,255,255,.4);
+     background:transparent;color:#fff;cursor:pointer;font-size:12px;}
+.btn:hover{background:rgba(255,255,255,.15);}
+#filter-info{font-size:11px;color:rgba(255,255,255,.65);}
+.card{background:var(--card);border-radius:var(--radius);
+      box-shadow:0 1px 3px rgba(0,0,0,.08);padding:14px 16px;margin-bottom:var(--gap);}
+.card h2{font-size:13px;font-weight:600;margin-bottom:10px;
+         border-bottom:1px solid var(--border);padding-bottom:7px;}
+.chart-row{display:grid;gap:var(--gap);margin-bottom:var(--gap);}
+.chart-row.cols-1{grid-template-columns:1fr;}
+.chart-row.cols-2{grid-template-columns:1fr 1fr;}
+.chart-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.chart-card{background:var(--card);border-radius:var(--radius);
+            box-shadow:0 1px 3px rgba(0,0,0,.08);padding:14px;}
+.chart-card h3{font-size:13px;font-weight:600;margin-bottom:4px;}
+.plotly-wrap{height:390px;}
+.summary-row{display:grid;gap:var(--gap);margin-bottom:var(--gap);}
+.summary-row.cols-1{grid-template-columns:1fr;}
+.summary-row.cols-2{grid-template-columns:1fr 1fr;}
+.summary-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.stats-mini{background:var(--card);border-radius:var(--radius);
+            box-shadow:0 1px 3px rgba(0,0,0,.08);padding:12px 14px;}
+.stats-mini h3{font-size:11px;font-weight:600;margin-bottom:7px;
+               color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.stat-item{display:flex;justify-content:space-between;padding:3px 0;
+           border-bottom:1px solid #f0f0f0;font-size:12px;}
+.stat-label{color:var(--muted);}
+.stat-val{font-weight:600;font-variant-numeric:tabular-nums;}
+.table-wrap{overflow-x:auto;max-height:480px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+/* stat table */
+.stat-table thead th{position:sticky;top:0;z-index:2;background:#f0f3f8;
+  padding:6px 8px;border-bottom:2px solid var(--border);border-right:1px solid var(--border);
+  text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;
+  letter-spacing:.3px;color:var(--muted);white-space:nowrap;}
+.stat-table tbody td{padding:5px 8px;border-bottom:1px solid #f0f0f0;
+                     border-right:1px solid #f5f5f5;white-space:nowrap;}
+.stat-table tbody tr:hover td{background:#f8fbff;}
+.stat-table .total-row td{font-weight:700;background:#eef2ff;
+                           position:sticky;bottom:0;z-index:1;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;}
+td.pct{text-align:right;color:var(--accent);font-variant-numeric:tabular-nums;}
+/* data table */
+.data-table thead{position:sticky;top:0;z-index:3;}
+.data-table thead tr.col-names th{background:#f0f3f8;padding:6px 8px;
+  border-bottom:1px solid var(--border);border-right:1px solid #e0e4ec;
+  text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;
+  letter-spacing:.3px;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;}
+.data-table thead tr.col-names th:hover{color:var(--text);background:#e8edf5;}
+.data-table thead tr.col-names th.sort-asc::after{content:" ▲";}
+.data-table thead tr.col-names th.sort-desc::after{content:" ▼";}
+.data-table thead tr.col-filters th{background:#f8f9fb;padding:3px 4px;
+  border-bottom:2px solid var(--border);border-right:1px solid #e8edf5;}
+.col-filter{width:100%;padding:3px 5px;font-size:11px;border:1px solid #d0d7e3;
+            border-radius:3px;background:#fff;color:var(--text);outline:none;box-sizing:border-box;}
+select.col-filter{cursor:pointer;padding-right:2px;}
+.col-filter:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,111,207,.15);}
+.col-filter.active{border-color:var(--accent);background:#f0f4ff;}
+.num-filter-wrap{display:flex;gap:2px;}
+.col-filter-num{width:50%;padding:3px 3px;font-size:10px;border:1px solid #d0d7e3;
+                border-radius:3px;background:#fff;color:var(--text);outline:none;
+                min-width:0;-moz-appearance:textfield;box-sizing:border-box;}
+.col-filter-num::-webkit-outer-spin-button,.col-filter-num::-webkit-inner-spin-button{-webkit-appearance:none;}
+.col-filter-num:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,111,207,.15);}
+.num-filter-wrap.active .col-filter-num{border-color:var(--accent);background:#f0f4ff;}
+.data-table tbody td{padding:5px 8px;border-bottom:1px solid #f5f5f5;
+                     border-right:1px solid #f8f8f8;white-space:nowrap;}
+.data-table tbody tr:hover td{background:#f6f9ff;}
+.tbl-controls{display:flex;justify-content:space-between;align-items:center;
+              margin-bottom:6px;flex-wrap:wrap;gap:6px;}
+.page-btns{display:flex;gap:3px;flex-wrap:wrap;}
+.page-btns button{padding:3px 8px;border-radius:3px;border:1px solid var(--border);
+                  background:#fff;cursor:pointer;font-size:12px;}
+.page-btns button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.page-btns button:hover:not(.active){background:#f0f4ff;}
+#rows-info{font-size:12px;color:var(--muted);}
+@media(max-width:900px){
+  .chart-row.cols-2,.chart-row.cols-3,
+  .summary-row.cols-2,.summary-row.cols-3{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>__TITLE__</h1>
+    <div class="filters" id="filter-bar"></div>
+  </div>
+
+  <!-- stat table — hidden when no stat cols configured -->
+  <div id="stat-section" style="display:none">
+    <div class="card">
+      <h2>__STAT_TABLE_TITLE__</h2>
+      <div class="table-wrap" id="stat-table-wrap"></div>
+    </div>
+  </div>
+
+  <div class="summary-row" id="summary-container" style="display:none"></div>
+  <div class="chart-row" id="charts-container" style="display:none"></div>
+
+  <!-- data table -->
+  <div class="card">
+    <h2>__DATA_TABLE_TITLE__ <small style="font-weight:400;color:var(--muted)">— column filters also update graphs</small></h2>
+    <div class="tbl-controls">
+      <span id="rows-info"></span>
+      <div class="page-btns" id="pagination"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="data-table"></table>
+    </div>
+  </div>
+
+</div>
+<script>
+// injected config
+const DATA           = __DATA_JSON__;           // [{col: val, …}, …]
+const STAT_DATA      = __STAT_JSON__;           // [{col: val, …, _total?: true}, …] or []
+const STAT_COLS      = __STAT_COLS_JSON__;      // [{key, label, fmt}, …] or []
+const DATA_COLS      = __COL_DEFS_JSON__;       // [{key, label, is_categorical?, is_numeric?}, …]
+const CHARTS         = __CHARTS_JSON__;         // [{id, title, xKey, yKey, …}, …]
+const SUMMARY_PANELS = __SUMMARY_PANELS_JSON__; // [{label, xKey, yKey}, …]
+const GLOBAL_FILTERS = __GLOBAL_FILTERS_JSON__; // [{key, label}, …]
+const DATE_KEY       = __DATE_KEY_JSON__;       // "Date" | null
+const DYN_STAT       = __DYN_STAT_JSON__;       // {groupBy, groupByLabel, metrics} | null
+
+// state
+let filtered = DATA.slice();
+let currentPage = 0;
+const PAGE_SIZE = 50;
+let sortColIdx = null;
+let sortDir = 1;
+const colFilters = {};
+const chartReady = CHARTS.map(() => false);
+
+// filter bar
+function buildFilterBar() {
+  if (!DATE_KEY && GLOBAL_FILTERS.length === 0) return;  // no filters configured — leave bar empty
+  const bar = document.getElementById('filter-bar');
+  let h = '';
+  if (DATE_KEY) {
+    h += `<div class="fg">
+      <label>Date from</label>
+      <input type="date" id="f-date-start" onchange="applyFilters()">
+      <label>to</label>
+      <input type="date" id="f-date-end" onchange="applyFilters()">
+    </div>`;
+  }
+  GLOBAL_FILTERS.forEach((gf, i) => {
+    h += `<div class="fg"><label>${gf.label}</label>
+      <select id="gf-${i}" onchange="applyFilters()"><option value="">All</option></select>
+    </div>`;
+  });
+  h += `<button class="btn" onclick="resetFilters()">Reset all</button>
+        <span id="filter-info"></span>`;
+  bar.innerHTML = h;
+  GLOBAL_FILTERS.forEach((gf, i) => populateSelect('gf-' + i, gf.key));
+}
+
+function populateSelect(id, key) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  [...new Set(DATA.map(r => r[key]).filter(v => v != null && v !== ''))].sort()
+    .forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+}
+
+// filters
+function getGlobalFilters() {
+  const f = {};
+  if (DATE_KEY) {
+    f._dateStart = document.getElementById('f-date-start')?.value || null;
+    f._dateEnd = document.getElementById('f-date-end')?.value || null;
+  }
+  GLOBAL_FILTERS.forEach((gf, i) => { f[gf.key] = document.getElementById('gf-' + i)?.value || ''; });
+  return f;
+}
+
+function applyFilters() {
+  const f = getGlobalFilters();
+  filtered = DATA.filter(r => {
+    // date comparison works because dates are stored as ISO strings (YYYY-MM-DD)
+    if (DATE_KEY && f._dateStart && (r[DATE_KEY] || '') < f._dateStart) return false;
+    if (DATE_KEY && f._dateEnd && (r[DATE_KEY] || '') > f._dateEnd) return false;
+    for (const gf of GLOBAL_FILTERS) {
+      if (f[gf.key] && r[gf.key] !== f[gf.key]) return false;
+    }
+    for (const [key, val] of Object.entries(colFilters)) {
+      if (val === '' || val == null) continue;
+      if (key.endsWith('__gte')) {
+        const bk = key.slice(0, -5);
+        const rv = r[bk]; if (rv == null || Number(rv) < val) return false;
+      } else if (key.endsWith('__lte')) {
+        const bk = key.slice(0, -5);
+        const rv = r[bk]; if (rv == null || Number(rv) > val) return false;
+      } else if (CAT_KEYS.has(key)) {
+        if (String(r[key] ?? '') !== val) return false;
+      } else {
+        if (!String(r[key] ?? '').toLowerCase().includes(val.toLowerCase())) return false;
+      }
+    }
+    return true;
+  });
+  currentPage = 0;
+  const el = document.getElementById('filter-info');
+  if (el) el.textContent = filtered.length === DATA.length
+    ? '' : `${filtered.length.toLocaleString()} / ${DATA.length.toLocaleString()} rows`;
+  renderAll();
+}
+
+function applyColFilter(key, val) {
+  const v = val.trim();
+  if (v === '') delete colFilters[key]; else colFilters[key] = v;
+  currentPage = 0;
+  applyFilters();
+}
+
+function applyNumFilter(key, bound, val) {
+  const fKey = key + '__' + bound;
+  const v = val.trim();
+  if (v === '') delete colFilters[fKey]; else colFilters[fKey] = parseFloat(v);
+  currentPage = 0;
+  applyFilters();
+}
+
+function resetFilters() {
+  if (DATE_KEY) {
+    ['f-date-start', 'f-date-end'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+  }
+  GLOBAL_FILTERS.forEach((gf, i) => {
+    const el = document.getElementById('gf-' + i); if (el) el.value = '';
+  });
+  Object.keys(colFilters).forEach(k => delete colFilters[k]);
+  document.querySelectorAll('.col-filter,.col-filter-num').forEach(el => {
+    el.value = ''; el.classList.remove('active');
+  });
+  document.querySelectorAll('.num-filter-wrap').forEach(el => el.classList.remove('active'));
+  applyFilters();
+}
+
+// column type lookup
+const CAT_KEYS = new Set(DATA_COLS.filter(c => c.is_categorical).map(c => c.key));
+const CAT_OPTS = {};
+DATA_COLS.filter(c => c.is_categorical).forEach(c => {
+  CAT_OPTS[c.key] = [...new Set(DATA.map(r => r[c.key]).filter(v => v != null && v !== ''))].sort();
+});
+
+// math helpers
+function mean(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+function stdev(arr) {
+  if (arr.length < 2) return 0;
+  const m = mean(arr);
+  return Math.sqrt(arr.reduce((s, x) => s + (x - m) ** 2, 0) / (arr.length - 1));
+}
+
+function computeXYStats(data, xKey, yKey) {
+  const pairs = data.map(r => [r[xKey], r[yKey]])
+                    .filter(([x, y]) => x != null && y != null && !isNaN(x) && !isNaN(y));
+  if (!pairs.length) return { n: 0, ax: 0, ay: 0, sdDist: 0, maxDist: 0, distToOrigin: 0 };
+  const xs = pairs.map(p => p[0]), ys = pairs.map(p => p[1]);
+  const ax = mean(xs), ay = mean(ys);
+  const dists = pairs.map(([x, y]) => Math.sqrt((x - ax) ** 2 + (y - ay) ** 2));
+  return { n: pairs.length, ax, ay, sdDist: stdev(dists), maxDist: Math.max(...dists),
+           distToOrigin: Math.sqrt(ax ** 2 + ay ** 2) };
+}
+
+function renderSummaryPanel(elId, s) {
+  const f = v => (v == null || isNaN(v)) ? '—' : v.toFixed(3);
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat-item"><span class="stat-label">Average X</span><span class="stat-val">${f(s.ax)}</span></div>
+    <div class="stat-item"><span class="stat-label">Average Y</span><span class="stat-val">${f(s.ay)}</span></div>
+    <div class="stat-item"><span class="stat-label">Std dev from center</span><span class="stat-val">${f(s.sdDist)}</span></div>
+    <div class="stat-item"><span class="stat-label">Max dist from center</span><span class="stat-val">${f(s.maxDist)}</span></div>
+    <div class="stat-item"><span class="stat-label">Distance center→(0,0)</span><span class="stat-val">${f(s.distToOrigin)}</span></div>
+    <div class="stat-item"><span class="stat-label">N</span><span class="stat-val">${s.n}</span></div>`;
+}
+
+// Plotly charts
+function buildLayout(cfg) {
+  const layout = {
+    margin: { t: 20, l: 48, r: 16, b: 40 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+    xaxis: { zeroline: true, zerolinecolor: '#ccc', zerolinewidth: 1, gridcolor: '#eee',
+             title: { text: cfg.xLabel || '', font: { size: 11 } } },
+    yaxis: { zeroline: true, zerolinecolor: '#ccc', zerolinewidth: 1, gridcolor: '#eee',
+             title: { text: cfg.yLabel || '', font: { size: 11 } } },
+    legend: { orientation: 'h', y: -0.14, font: { size: 11 } },
+    annotations: cfg.annotations || [],
+    hovermode: 'closest',
+  };
+  if (cfg.equalAxes === true) {
+    layout.yaxis.scaleanchor = 'x';
+    layout.yaxis.scaleratio  = 1;
+  }
+  return layout;
+}
+
+function updateChart(cfg, isFirst) {
+  // hover: use hoverCols if specified, else auto-pick categorical columns
+  const hKeys = cfg.hoverCols || DATA_COLS.filter(c => c.is_categorical).map(c => c.key).slice(0, 5);
+  const traces = [];
+
+  if (cfg.colorKey) {
+    // Discover ALL unique group values from the full dataset — sorted alphabetically.
+    // This guarantees consistent Plotly color assignment regardless of which groups
+    // are present in the current filtered subset (Adelie always color[0], etc.).
+    const allGroups = [...new Set(DATA.map(r => String(r[cfg.colorKey] ?? 'Other')))].sort();
+    const groups = Object.fromEntries(allGroups.map(g => [g, { x: [], y: [], text: [] }]));
+    filtered.forEach(r => {
+      const x = r[cfg.xKey], y = r[cfg.yKey];
+      if (x == null || y == null || isNaN(+x) || isNaN(+y)) return;
+      const grp = String(r[cfg.colorKey] ?? 'Other');
+      const tip = hKeys.filter(k => k !== cfg.colorKey)
+                       .map(k => r[k] != null ? `${k}: ${r[k]}` : null)
+                       .filter(Boolean).join('<br>');
+      groups[grp].x.push(x);
+      groups[grp].y.push(y);
+      groups[grp].text.push(tip || `(${(+x).toFixed(3)}, ${(+y).toFixed(3)})`);
+    });
+    allGroups.forEach(grp => traces.push({
+      x: groups[grp].x, y: groups[grp].y, mode: 'markers', name: grp,
+      text: groups[grp].text, hovertemplate: '%{text}<extra></extra>',
+      marker: { size: 7, opacity: 0.75, line: { width: 0.5 } }
+    }));
+  } else {
+    // Single-color trace
+    const px = [], py = [], htxt = [];
+    filtered.forEach(r => {
+      const x = r[cfg.xKey], y = r[cfg.yKey];
+      if (x != null && y != null && !isNaN(x) && !isNaN(y)) {
+        px.push(x); py.push(y);
+        const tip = hKeys.map(k => r[k] != null ? `${k}: ${r[k]}` : null).filter(Boolean).join('<br>');
+        htxt.push(tip || `(${x.toFixed(3)}, ${y.toFixed(3)})`);
+      }
+    });
+    traces.push({ x: px, y: py, mode: 'markers', name: 'Data', text: htxt,
+      hovertemplate: '%{text}<extra></extra>',
+      marker: { color: 'rgba(55,110,210,.5)', size: 6, line: { color: 'rgba(55,110,210,.8)', width: .5 } } });
+  }
+
+  // Avg point + origin→avg line — opt-in only via ScatterChart(show_avg=True)
+  if (cfg.showAvg) {
+    const s = computeXYStats(filtered, cfg.xKey, cfg.yKey);
+    traces.push(
+      { x: [s.ax], y: [s.ay], mode: 'markers',
+        name: `Avg (${s.ax.toFixed(2)}, ${s.ay.toFixed(2)})`,
+        hovertemplate: `Average<br>X:${s.ax.toFixed(3)}<br>Y:${s.ay.toFixed(3)}<extra></extra>`,
+        marker: { color: '#e07b30', size: 11, symbol: 'square' } },
+      { x: [0, s.ax], y: [0, s.ay], mode: 'lines', name: 'Origin→Avg',
+        hoverinfo: 'skip', showlegend: true,
+        line: { color: 'rgba(224,123,48,.7)', width: 1.5, dash: 'dot' } }
+    );
+  }
+
+  const layout = buildLayout(cfg);
+  if (isFirst) Plotly.newPlot(cfg.id, traces, layout, { responsive: true, displaylogo: false });
+  else         Plotly.react(cfg.id, traces, layout);
+}
+
+function aggregateGroups(cfg) {
+  // Shared helper: group filtered rows by xKey, aggregate yKey, return sorted {xs, ys}.
+  const groups = {};
+  filtered.forEach(r => {
+    const xv = r[cfg.xKey];
+    if (xv == null) return;
+    const xStr = String(xv);
+    if (!groups[xStr]) groups[xStr] = [];
+    groups[xStr].push(cfg.yKey ? r[cfg.yKey] : 1);
+  });
+  const sortedX = Object.keys(groups).sort();
+  const xs = [], ys = [];
+  sortedX.forEach(xv => {
+    const vals = groups[xv];
+    xs.push(xv);
+    let y;
+    if (cfg.agg === 'mean') {
+      const nums = vals.filter(v => v != null && !isNaN(+v));
+      y = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+    } else if (cfg.agg === 'sum') {
+      y = vals.filter(v => v != null && !isNaN(+v)).reduce((a, b) => a + b, 0);
+    } else if (cfg.agg === 'max') {
+      y = Math.max(...vals.filter(v => v != null && !isNaN(+v)));
+    } else {
+      y = vals.length;  // default: count rows
+    }
+    ys.push(y);
+  });
+  return { xs, ys };
+}
+
+function updateLineChart(cfg, isFirst) {
+  const { xs, ys } = aggregateGroups(cfg);
+  const traces = [{
+    x: xs, y: ys, mode: 'lines+markers', name: cfg.yLabel || 'Value',
+    line:   { color: 'rgba(59,111,207,.8)', width: 2 },
+    marker: { size: 5, color: 'rgba(59,111,207,1)' },
+    hovertemplate: `%{x}<br>${cfg.yLabel || 'Value'}: %{y}<extra></extra>`,
+  }];
+  const layout = {
+    margin: { t: 20, l: 48, r: 16, b: 60 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+    xaxis: { zeroline: false, gridcolor: '#eee',
+             title: { text: cfg.xLabel || '', font: { size: 11 } } },
+    yaxis: { zeroline: true, zerolinecolor: '#ccc', zerolinewidth: 1, gridcolor: '#eee',
+             title: { text: cfg.yLabel || '', font: { size: 11 } } },
+    showlegend: false, hovermode: 'closest',
+  };
+  if (isFirst) Plotly.newPlot(cfg.id, traces, layout, { responsive: true, displaylogo: false });
+  else         Plotly.react(cfg.id, traces, layout);
+}
+
+function updateBarChart(cfg, isFirst) {
+  // All unique x and colorKey values come from the full DATA so colors stay
+  // consistent regardless of which groups survive the current filter.
+  const xGroups = [...new Set(DATA.map(r => r[cfg.xKey]).filter(v => v != null).map(String))].sort();
+  let traces;
+
+  function aggVals(vals) {
+    if (cfg.agg === 'mean') {
+      const nums = vals.filter(v => v != null && !isNaN(+v));
+      return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+    }
+    if (cfg.agg === 'sum') return vals.filter(v => v != null && !isNaN(+v)).reduce((a, b) => a + b, 0);
+    if (cfg.agg === 'max') {
+      const nums = vals.filter(v => v != null && !isNaN(+v));
+      return nums.length ? Math.max(...nums) : 0;
+    }
+    return vals.length;  // default: count
+  }
+
+  if (cfg.colorKey) {
+    // Grouped / stacked bar: one trace per colorKey value, bars positioned at xKey groups.
+    const colorGroups = [...new Set(DATA.map(r => r[cfg.colorKey]).filter(v => v != null).map(String))].sort();
+    // Accumulate values per (colorGroup, xGroup) from filtered rows
+    const buckets = {};
+    colorGroups.forEach(cg => { buckets[cg] = Object.fromEntries(xGroups.map(xg => [xg, []])); });
+    filtered.forEach(r => {
+      const xv = r[cfg.xKey], cv = r[cfg.colorKey];
+      if (xv == null || cv == null) return;
+      const xs = String(xv), cs = String(cv);
+      if (buckets[cs] && buckets[cs][xs] !== undefined)
+        buckets[cs][xs].push(cfg.yKey ? r[cfg.yKey] : 1);
+    });
+    traces = colorGroups.map(cg => ({
+      x: xGroups, y: xGroups.map(xg => aggVals(buckets[cg][xg])),
+      type: 'bar', name: cg,
+      hovertemplate: `%{x} — ${cg}<br>${cfg.yLabel || 'Count'}: %{y:.0f}<extra></extra>`,
+    }));
+  } else {
+    // Simple bar: one trace per x group (each gets its own Plotly auto-color)
+    const buckets = Object.fromEntries(xGroups.map(xg => [xg, []]));
+    filtered.forEach(r => {
+      const xv = r[cfg.xKey];
+      if (xv == null) return;
+      buckets[String(xv)].push(cfg.yKey ? r[cfg.yKey] : 1);
+    });
+    traces = xGroups.map(xg => ({
+      x: [xg], y: [aggVals(buckets[xg])], type: 'bar', name: xg,
+      hovertemplate: `${xg}<br>${cfg.yLabel || 'Count'}: %{y:.0f}<extra></extra>`,
+    }));
+  }
+
+  const layout = {
+    margin: { t: 20, l: 48, r: 16, b: 60 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+    barmode: cfg.barmode || 'group',
+    xaxis: { zeroline: false, gridcolor: '#eee',
+             title: { text: cfg.xLabel || '', font: { size: 11 } } },
+    yaxis: { zeroline: true, zerolinecolor: '#ccc', zerolinewidth: 1, gridcolor: '#eee',
+             title: { text: cfg.yLabel || 'Count', font: { size: 11 } } },
+    legend: { orientation: 'h', y: -0.2, font: { size: 11 } },
+    hovermode: 'closest',
+  };
+
+  if (isFirst) Plotly.newPlot(cfg.id, traces, layout, { responsive: true, displaylogo: false });
+  else         Plotly.react(cfg.id, traces, layout);
+}
+
+// stat table — two modes:
+//   Dynamic (DYN_STAT): JS re-aggregates from `filtered` on every filter change,
+//     so ALL header filters (date, island, sex…) are reflected immediately.
+//   Static (STAT_DATA): pre-computed rows, row-filtered by matching global filter keys.
+function renderStatTable() {
+  const hasDyn    = DYN_STAT !== null;
+  const hasStatic = STAT_COLS.length > 0 && STAT_DATA.length > 0;
+  if (!hasDyn && !hasStatic) return;
+
+  let rows, cols;
+
+  if (hasDyn) {
+    // Group filtered rows by the specified column
+    const groups = {}, groupOrder = [];
+    filtered.forEach(r => {
+      const gv = r[DYN_STAT.groupBy];
+      if (gv == null) return;
+      const gs = String(gv);
+      if (!groups[gs]) { groups[gs] = []; groupOrder.push(gs); }
+      groups[gs].push(r);
+    });
+    groupOrder.sort();
+
+    // Run one aggregation for a set of rows
+    function aggVal(gRows, m) {
+      if (m.agg === 'count') return gRows.length;
+      const nums = gRows.map(r => r[m.key]).filter(v => v != null && !isNaN(+v)).map(Number);
+      if (!nums.length) return null;
+      if (m.agg === 'mean') return nums.reduce((a, b) => a + b, 0) / nums.length;
+      if (m.agg === 'sum')  return nums.reduce((a, b) => a + b, 0);
+      if (m.agg === 'max')  return Math.max(...nums);
+      return null;
+    }
+
+    const detailRows = groupOrder.map(gs => {
+      const row = { [DYN_STAT.groupBy]: gs };
+      DYN_STAT.metrics.forEach(m => { row[m.key] = aggVal(groups[gs], m); });
+      return row;
+    });
+    const totalRow = { [DYN_STAT.groupBy]: 'TOTAL', _total: true };
+    DYN_STAT.metrics.forEach(m => { totalRow[m.key] = aggVal(filtered, m); });
+
+    rows = [...detailRows, totalRow];
+    cols = [
+      { key: DYN_STAT.groupBy, label: DYN_STAT.groupByLabel || DYN_STAT.groupBy, fmt: 'str' },
+      ...DYN_STAT.metrics.map(m => ({ key: m.key, label: m.label, fmt: m.fmt || 'str' })),
+    ];
+  } else {
+    // Static mode: filter STAT_DATA rows by matching global filter keys
+    const f = getGlobalFilters();
+    rows = STAT_DATA.filter(r => {
+      if (r._total) return true;
+      if (DATE_KEY) {
+        const d = r[DATE_KEY] || '';
+        if (f._dateStart && d < f._dateStart) return false;
+        if (f._dateEnd   && d > f._dateEnd)   return false;
+      }
+      for (const gf of GLOBAL_FILTERS) {
+        if (f[gf.key] && r[gf.key] !== undefined && String(r[gf.key]) !== f[gf.key]) return false;
+      }
+      return true;
+    });
+    cols = STAT_COLS;
+  }
+
+  function cell(v, fmt) {
+    if (v == null || v !== v) return '<td>—</td>';
+    if (fmt === 'pct') return `<td class="pct">${(+v * 100).toFixed(1)}%</td>`;
+    if (fmt === 'int') return `<td class="num">${Math.round(+v).toLocaleString()}</td>`;
+    if (typeof v === 'number') return `<td class="num">${v.toFixed(1)}</td>`;
+    return `<td>${v}</td>`;
+  }
+  let h = '<table class="stat-table"><thead><tr>';
+  cols.forEach(c => { h += `<th>${c.label}</th>`; });
+  h += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    const cls = r._total ? ' class="total-row"' : '';
+    h += `<tr${cls}>`;
+    cols.forEach(c => { h += cell(r[c.key], c.fmt); });
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  document.getElementById('stat-table-wrap').innerHTML = h;
+}
+
+// data table
+// The thead (with filter inputs) is built once and never destroyed — rebuilding it
+// on every keystroke would remove the focused input and break multi-character typing.
+// Only the tbody is replaced on each filter/page/sort update.
+let tableHeaderBuilt = false;
+
+function buildFilterCell(c) {
+  const val     = colFilters[c.key] || '';
+  const active  = val ? ' active' : '';
+  const safeKey = c.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  if (c.is_categorical) {
+    const opts = (CAT_OPTS[c.key] || [])
+      .map(v => { const sv = String(v); return `<option value="${sv.replace(/"/g, '&quot;')}"${sv === val ? ' selected' : ''}>${sv}</option>`; })
+      .join('');
+    return `<th><select class="col-filter${active}" title="Filter ${c.label}"
+      onchange="applyColFilter('${safeKey}',this.value);this.classList.toggle('active',this.value!='')">
+      <option value="">— All —</option>${opts}</select></th>`;
+  } else if (c.is_numeric) {
+    const minVal = colFilters[c.key + '__gte'] ?? '';
+    const maxVal = colFilters[c.key + '__lte'] ?? '';
+    const ra     = (minVal !== '' || maxVal !== '') ? ' active' : '';
+    return `<th><div class="num-filter-wrap${ra}">
+      <input type="number" class="col-filter-num" value="${minVal}" placeholder="≥"
+        title="Min ${c.label}" step="any" oninput="applyNumFilter('${safeKey}','gte',this.value)">
+      <input type="number" class="col-filter-num" value="${maxVal}" placeholder="≤"
+        title="Max ${c.label}" step="any" oninput="applyNumFilter('${safeKey}','lte',this.value)">
+      </div></th>`;
+  } else {
+    return `<th><input type="text" class="col-filter${active}" value="${val.replace(/"/g, '&quot;')}"
+      placeholder="🔍" title="Filter ${c.label}"
+      oninput="applyColFilter('${safeKey}',this.value);this.classList.toggle('active',this.value!='')"></th>`;
+  }
+}
+
+function renderDataTable() {
+  const total = filtered.length;
+  const start = currentPage * PAGE_SIZE;
+  const end   = Math.min(start + PAGE_SIZE, total);
+  const page  = filtered.slice(start, end);
+
+  document.getElementById('rows-info').textContent =
+    `Showing ${(start + 1).toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()} rows`;
+
+  const pages = Math.ceil(total / PAGE_SIZE);
+  let pg = '';
+  for (let i = 0; i < pages; i++) {
+    if (pages > 12 && i > 2 && i < pages - 3 && Math.abs(i - currentPage) > 1) {
+      if (i === 3 || i === pages - 3) pg += '<button disabled>…</button>';
+      continue;
+    }
+    pg += `<button onclick="goPage(${i})" class="${i === currentPage ? 'active' : ''}">${i + 1}</button>`;
+  }
+  document.getElementById('pagination').innerHTML = pg;
+
+  const tbl = document.getElementById('data-table');
+
+  if (!tableHeaderBuilt) {
+    // Build thead once — filter inputs live here and must survive across renders
+    let h = '<thead><tr class="col-names">';
+    DATA_COLS.forEach((c, i) => {
+      h += `<th onclick="sortBy(${i})">${c.label}</th>`;
+    });
+    h += '</tr><tr class="col-filters">';
+    DATA_COLS.forEach(c => { h += buildFilterCell(c); });
+    h += '</tr></thead><tbody></tbody>';
+    tbl.innerHTML = h;
+    tableHeaderBuilt = true;
+  }
+
+  // Replace only tbody — preserves filter inputs and their keyboard focus
+  let tb = '';
+  page.forEach(r => {
+    tb += '<tr>';
+    DATA_COLS.forEach(c => {
+      const v    = r[c.key];
+      const disp = (v == null || v === '') ? '' : (typeof v === 'number' ? +v.toFixed(4) : v);
+      tb += c.is_numeric ? `<td class="num">${disp}</td>` : `<td>${disp}</td>`;
+    });
+    tb += '</tr>';
+  });
+  tbl.querySelector('tbody').innerHTML = tb;
+}
+
+function goPage(p) { currentPage = p; renderDataTable(); }
+
+function sortBy(idx) {
+  const key = DATA_COLS[idx].key;
+  if (sortColIdx === idx) sortDir *= -1; else { sortColIdx = idx; sortDir = 1; }
+  // Update sort indicators directly on existing th elements — no thead rebuild needed
+  document.querySelectorAll('#data-table thead tr.col-names th').forEach((th, i) => {
+    th.className = i === sortColIdx ? (sortDir > 0 ? 'sort-asc' : 'sort-desc') : '';
+  });
+  filtered.sort((a, b) => {
+    const av = a[key], bv = b[key];
+    if (av == null) return 1; if (bv == null) return -1;
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+  currentPage = 0;
+  renderDataTable();
+}
+
+// render all
+function renderAll() {
+  renderStatTable();
+  SUMMARY_PANELS.forEach((p, i) => {
+    const s = computeXYStats(filtered, p.xKey, p.yKey);
+    renderSummaryPanel('summary-panel-' + i, s);
+  });
+  CHARTS.forEach((cfg, i) => {
+    const updater = cfg.type === 'line' ? updateLineChart
+                  : cfg.type === 'bar'  ? updateBarChart
+                  : updateChart;
+    updater(cfg, !chartReady[i]);
+    chartReady[i] = true;
+  });
+  renderDataTable();
+}
+
+// build dynamic DOM sections
+function buildDynamicSections() {
+  // chart row
+  if (CHARTS.length) {
+    const row = document.getElementById('charts-container');
+    const cols = Math.min(CHARTS.length, 3);
+    row.className = `chart-row cols-${cols}`;
+    row.style.display = '';
+    CHARTS.forEach(cfg => {
+      const div = document.createElement('div');
+      div.className = 'chart-card';
+      div.innerHTML = `<h3>${cfg.title}</h3><div class="plotly-wrap" id="${cfg.id}"></div>`;
+      row.appendChild(div);
+    });
+  }
+
+  // summary panels
+  if (SUMMARY_PANELS.length) {
+    const wrap = document.getElementById('summary-container');
+    const cols = Math.min(SUMMARY_PANELS.length, 3);
+    wrap.className = `summary-row cols-${cols}`;
+    wrap.style.display = '';
+    SUMMARY_PANELS.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'stats-mini';
+      div.innerHTML = `<h3>${p.label}</h3><div id="summary-panel-${i}"></div>`;
+      wrap.appendChild(div);
+    });
+  }
+
+  // stat table — show for both pre-computed and dynamic modes
+  if ((STAT_COLS.length && STAT_DATA.length) || DYN_STAT) {
+    document.getElementById('stat-section').style.display = '';
+  }
+}
+
+(function init() {
+  buildFilterBar();
+  buildDynamicSections();
+  renderAll();
+})();
+</script>
+</body>
+</html>
