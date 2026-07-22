@@ -26,6 +26,13 @@ dfreport targets the gap between the two: fully offline, no server, everything i
 
 Everything is injected into a single `.html` file at generation time — Plotly bundled inline, data embedded as JSON. The result opens in any browser with no dependencies.
 
+## Examples
+
+| Notebook | Live preview |
+|---|---|
+| [Palmer Penguins](examples/penguins/01_penguins.ipynb) | [penguins_report.html](https://htmlpreview.github.io/?https://github.com/nelaluno/dfreport/blob/main/examples/penguins/penguins_report.html) |
+| [USGS Earthquakes](examples/earthquakes/02_earthquakes.ipynb) | [earthquakes_report.html](https://htmlpreview.github.io/?https://github.com/nelaluno/dfreport/blob/main/examples/earthquakes/earthquakes_report.html) |
+
 ## Inspiration
 
 Column type auto-detection (categorical vs. numeric vs. text) is modelled on the approach used in [df2tables](https://github.com/pdolinic/df2tables). dfreport does not use df2tables code; the filter rendering is implemented in vanilla JS without DataTables.js.
@@ -33,13 +40,13 @@ Column type auto-detection (categorical vs. numeric vs. text) is modelled on the
 ## Install
 
 ```bash
-pip install git+https://github.com/yourname/dfreport
+pip install git+https://github.com/nelaluno/dfreport
 ```
 
 Or in Colab:
 
 ```python
-!pip install git+https://github.com/yourname/dfreport
+!pip install git+https://github.com/nelaluno/dfreport
 ```
 
 ## Quick start
